@@ -96,9 +96,6 @@ Multiple regression algorithms are trained and evaluated in order to determine w
 The models explored include:
 
 - Decision Tree Regressor  
-- Random Forest Regressor  
-- Gradient Boosting Regressor  
-- XGBoost Regressor  
 
 Training multiple models allows performance comparison and helps identify the most suitable algorithm for the prediction task.
 
@@ -132,8 +129,7 @@ The repository exposes the trained model through a FastAPI application. The API 
 - Python  
 - Pandas  
 - NumPy  
-- Scikit-learn  
-- XGBoost  
+- Scikit-learn   
 - FastAPI  
 - Uvicorn  
 
