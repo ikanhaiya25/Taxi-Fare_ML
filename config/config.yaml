@@ -1,0 +1,11 @@
+artifacts_root: artifacts
+
+data_ingestion:
+  dataset_path: data/taxi.csv
+  train_path: artifacts/train.csv
+  test_path: artifacts/test.csv
+  test_size: 0.12
+
+model_trainer:
+  model_path: artifacts/model.pkl
+  random_state: 42
