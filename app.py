@@ -1,14 +1,9 @@
 from fastapi import FastAPI
 import numpy as np
-<<<<<<< HEAD
-from pydantic import BaseModel
-from src.utils.common import load_object
-=======
 import pandas as pd
 from pydantic import BaseModel
 from src.utils.common import load_object
 from src.components.data_transformation import DataTransformation
->>>>>>> d3b09fc (Initial commit)
 
 
 app = FastAPI()
@@ -16,14 +11,11 @@ app = FastAPI()
 model = load_object("artifacts/model.pkl")
 scaler = load_object("artifacts/scaler.pkl")
 
-<<<<<<< HEAD
-=======
 # Load a chunk of the test data into memory once for the random prediction endpoint
 try:
     test_df_sample = pd.read_csv("artifacts/test.csv", nrows=10000, low_memory=False)
 except Exception:
     test_df_sample = None
->>>>>>> d3b09fc (Initial commit)
 
 class TaxiInput(BaseModel):
     data: list[float]
@@ -43,13 +35,6 @@ def predict(input_data: TaxiInput):
 
     print("Shape:", arr.shape)
 
-<<<<<<< HEAD
-    arr = scaler.transform(arr)
-
-    prediction = model.predict(arr)
-
-    return {"fare_prediction": float(prediction[0])}
-=======
     cat_features = arr[:, :6]
     num_features = arr[:, 6:]
 
@@ -96,4 +81,3 @@ def predict_random():
         "trip_distance": float(transformed['distance'].iloc[0]),
         "trip_duration": float(transformed['duration'].iloc[0])
     }
->>>>>>> d3b09fc (Initial commit)
