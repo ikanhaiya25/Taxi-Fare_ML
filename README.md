@@ -1,4 +1,4 @@
-# 🚕 Taxi Fare Prediction — ML Pipeline & API
+#  Taxi Fare Prediction — ML Pipeline & API
 
 
 ## Project Overview
@@ -80,7 +80,7 @@ taxi_fare_project/
 
 ---
 
-## ⚙️ Setup & Installation
+##  Setup & Installation
 
 ### Prerequisites
 
@@ -115,7 +115,7 @@ python-multipart
 
 ---
 
-## 🏋️ Training Pipeline
+##  Training Pipeline
 
 The pipeline runs three stages sequentially:
 
@@ -153,7 +153,7 @@ model_trainer:
 
 ---
 
-## 🚀 Prediction API
+##  Prediction API
 
 The project exposes a **FastAPI** application with the following endpoints:
 
@@ -232,7 +232,7 @@ Picks a random row from `artifacts/test.csv`, transforms it, runs the model, and
 
 ---
 
-## 🧰 Tech Stack
+##  Tech Stack
 
 | Category | Tool |
 |----------|------|
@@ -245,6 +245,6 @@ Picks a random row from `artifacts/test.csv`, transforms it, runs the model, and
 
 ---
 
-## 📝 License
+##  License
 
 This project is open-source and available for educational purposes.
