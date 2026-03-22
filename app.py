@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 import numpy as np
 import pandas as pd
+<<<<<<< HEAD
+=======
+import os
+>>>>>>> f1b62d4 (update)
 from pydantic import BaseModel
 from src.utils.common import load_object
 from src.components.data_transformation import DataTransformation
@@ -8,12 +12,27 @@ from src.components.data_transformation import DataTransformation
 
 app = FastAPI()
 
+<<<<<<< HEAD
 model = load_object("artifacts/model.pkl")
 scaler = load_object("artifacts/scaler.pkl")
 
 # Load a chunk of the test data into memory once for the random prediction endpoint
 try:
     test_df_sample = pd.read_csv("artifacts/test.csv", nrows=10000, low_memory=False)
+=======
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "artifacts", "model.pkl")
+scaler_path = os.path.join(BASE_DIR, "artifacts", "scaler.pkl")
+
+test_csv_path = os.path.join(BASE_DIR, "artifacts", "test.csv")
+
+model = load_object(model_path)
+scaler = load_object(scaler_path)
+
+# Load a chunk of the test data into memory once for the random prediction endpoint
+try:
+    test_df_sample = pd.read_csv(test_csv_path, nrows=10000, low_memory=False)
+>>>>>>> f1b62d4 (update)
 except Exception:
     test_df_sample = None
 
