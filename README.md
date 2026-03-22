@@ -1,4 +1,48 @@
+# 🚕 Taxi Fare Prediction — ML Pipeline & API
 
+
+## Project Overview
+
+This project implements an end-to-end machine learning pipeline for predicting taxi fares using historical trip data. The goal is to demonstrate how a predictive model can move from raw data processing to a deployable API in a structured and maintainable way.
+
+The repository focuses on building a modular machine learning workflow rather than keeping the entire process inside a single notebook. Different parts of the workflow such as data preparation, feature transformation, model training, and prediction are organized into separate components. This makes the pipeline easier to maintain and closer to how machine learning systems are developed in real production environments.
+
+The trained model is exposed through a lightweight API built with FastAPI, allowing the system to receive trip-related inputs and return predicted taxi fares. This setup demonstrates how machine learning models can be integrated into applications where predictions need to be generated in real time.
+
+---
+
+## Problem Statement
+
+Estimating taxi fares from operational data is more complex than simply measuring trip distance. Taxi pricing depends on several interacting factors including passenger count, trip distance, vendor policies, rate codes, and payment methods. These variables influence the final fare in ways that are often nonlinear and sometimes inconsistent across different trips.
+
+Large transportation datasets also introduce practical challenges such as missing values, noisy records, and extreme outliers. If these issues are not addressed carefully during preprocessing, they can significantly degrade the performance of predictive models.
+
+The objective of this project is to design a regression-based machine learning pipeline that can learn patterns from historical taxi trip data and generate reliable fare predictions for new inputs. Achieving this requires structured data preprocessing, careful feature preparation, experimentation with multiple regression algorithms, and a mechanism for serving predictions through an API.
+
+---
+
+## Dataset
+
+The dataset used in this project contains taxi trip records from New York City for January 2020.
+
+Dataset source  
+https://data.world/vizwiz/nyc-taxi-jan-2020
+
+The dataset includes detailed trip-level attributes that describe different aspects of each taxi ride. These attributes provide the information required to train a model that estimates fare amounts.
+
+Some of the important variables available in the dataset include:
+
+- VendorID – identifier for the taxi service provider  
+- Passenger count – number of passengers in the trip  
+- Trip distance – total distance traveled during the ride  
+- Rate code – pricing category applied by the taxi provider  
+- Payment type – method used to pay for the trip  
+- Pickup and drop-off timestamps  
+- Fare amount and total trip cost  
+
+These variables act as input features for the regression models used in this project.
+
+---
 ## 📁 Project Structure
 
 ```
