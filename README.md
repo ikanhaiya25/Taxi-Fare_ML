@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Taxi Fare ML Pipeline
 
 ## Project Overview
@@ -353,4 +353,3 @@ Picks a random row from `artifacts/test.csv`, transforms it, runs the model, and
 ## 📝 License
 
 This project is open-source and available for educational purposes.
->>>>>>> f1b62d4 (update)
