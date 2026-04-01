@@ -5,6 +5,7 @@ import os
 from pydantic import BaseModel
 from src.utils.common import load_object
 from src.components.data_transformation import DataTransformation
+from src.logger import logging
 
 
 app = FastAPI()
@@ -82,9 +83,9 @@ def predict_random():
     predicted_fare = float(prediction[0])
     
     return {
-        "actual_fare": float(true_fare),
-        "predicted_fare": predicted_fare,
-        "difference": float(abs(true_fare - predicted_fare)),
-        "trip_distance": float(transformed['distance'].iloc[0]),
-        "trip_duration": float(transformed['duration'].iloc[0])
+        "actual_fare": round(float(true_fare),4),
+        "predicted_fare": round(predicted_fare,4),
+        "difference": round(float(abs(true_fare - predicted_fare)),4),
+        "trip_distance": round(float(transformed['distance'].iloc[0]),4),
+        "trip_duration": round(float(transformed['duration'].iloc[0]),4)
     }

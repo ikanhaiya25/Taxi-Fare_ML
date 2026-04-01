@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from src.utils.common import save_object
+from src.logger import logging
 
 
 class DataTransformation:

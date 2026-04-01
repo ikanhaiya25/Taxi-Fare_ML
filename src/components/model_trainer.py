@@ -1,6 +1,7 @@
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 from src.utils.common import save_object
+from src.logger import logging
 
 class ModelTrainer:
 
@@ -10,12 +11,14 @@ class ModelTrainer:
 
 
     def initiate_model_trainer(self,X_train,X_test,y_train,y_test):
+        logging.info("Model training started")
 
         model=DecisionTreeRegressor(
             random_state=self.config.random_state
         )
 
         model.fit(X_train,y_train)
+        logging.info("Model fitted successfully")
 
         preds=model.predict(X_test)
 
@@ -23,6 +26,8 @@ class ModelTrainer:
         mae = mean_absolute_error(y_test,preds)
         mse = mean_squared_error(y_test,preds)
 
+        logging.info(f"DecisionTreeRegressor Metrics: R2={r2}, MAE={mae}, MSE={mse}")
         print(f"DecisionTreeReressor Metrics:\nR2 Score: {r2}\nMAE: {mae}\nMSE: {mse}")
 
         save_object(self.config.model_path,model)
+        logging.info("Model saved successfully")
