@@ -37,19 +37,9 @@ def home():
 @app.post("/predict")
 def predict(input_data: TaxiInput):
 
-    print("Input received:", input_data.data)
-
     arr = np.array(input_data.data).reshape(1, -1)
 
-    print("Shape:", arr.shape)
-
-    cat_features = arr[:, :6]
-    num_features = arr[:, 6:]
-
-    num_scaled = scaler.transform(num_features)
-    final_arr = np.hstack((cat_features, num_scaled))
-
-    prediction = model.predict(final_arr)
+    prediction = model.predict(arr)
 
     return {"fare_prediction": float(prediction[0])}
 
