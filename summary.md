@@ -124,6 +124,7 @@ model_trainer:
 
 ---
 
+
 ## Architecture Diagram
 
 ```
