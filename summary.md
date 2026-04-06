@@ -1,178 +1,155 @@
-# Project Summary
+# Project Summary — Taxi Fare Prediction
 
-This repository implements a machine learning pipeline designed to predict taxi fares using historical trip data. The project demonstrates how raw transportation data can be transformed into a structured predictive system through data preprocessing, feature engineering, model training, and API deployment.
+## Overview
 
-The goal is not only to train a regression model but also to structure the workflow in a modular way so that different stages of the machine learning lifecycle can be maintained and reused easily. The repository follows a pipeline-oriented design where preprocessing, model training, and prediction logic are separated into different components.
-
----
-
-## Dataset
-
-The dataset used in this project contains taxi trip records from New York City for January 2020.
-
-Dataset source:  
-https://data.world/vizwiz/nyc-taxi-jan-2020
-
-The dataset includes several attributes describing taxi rides. These features provide the information required to train regression models that estimate the fare amount.
-
-Some of the important attributes available in the dataset include:
-
-- VendorID – Identifier for the taxi service provider  
-- Passenger count – Number of passengers in the trip  
-- Trip distance – Distance travelled during the ride  
-- Rate code – Pricing category assigned to the trip  
-- Payment type – Payment method used by the passenger  
-- Pickup and drop-off timestamps  
-- Fare amount – Target variable used for prediction  
-
-These attributes are used as input features for building the machine learning models.
+This project is an **end-to-end machine learning system** that predicts the **total fare amount** for NYC yellow taxi trips. It ingests raw trip data, engineers meaningful features, trains a regression model, and serves predictions through a REST API.
 
 ---
 
-## Project Objectives
+## Pipeline Stages
 
-The project aims to achieve the following objectives:
+### 1. Data Ingestion (`src/components/data_ingestion.py`)
 
-- Build a structured machine learning pipeline for taxi fare prediction  
-- Prepare and preprocess real-world transportation data  
-- Apply statistical techniques to understand the dataset  
-- Train and evaluate multiple regression models  
-- Deploy the trained model through a REST API for real-time predictions  
+- **Input:** Raw CSV file (`data/taxi.csv`) containing NYC yellow taxi trip records.
+- **Process:** Loads the full dataset with pandas, then performs a sequential (non-shuffled) 88%/12% train-test split using `sklearn.model_selection.train_test_split`.
+- **Output:** `artifacts/train.csv` and `artifacts/test.csv`.
+- **Config-driven:** Dataset path and split ratio come from `config/config.yaml`.
 
----
+### 2. Data Transformation (`src/components/data_transformation.py`)
 
-## Machine Learning Pipeline
+Applies the following cleaning and feature engineering steps to both train and test sets:
 
-Machine Learning Pipeline: a structured workflow that converts raw data into a trained and deployable machine learning model.
+**Cleaning:**
+- Drops rows with missing values (`dropna`)
+- Removes duplicate rows (`drop_duplicates`)
+- Filters out rows where `fare_amount < 0`
 
-The pipeline implemented in this project includes the following stages:
+**Feature Engineering:**
+- Parses `tpep_pickup_datetime` and `tpep_dropoff_datetime` to `datetime`
+- Extracts: `pickup_hours`, `pickup_day`, `pickup_weekday`, `pickup_month`
+- Computes `trip_duration(min)` = (dropoff − pickup) in minutes
 
-### Data Preparation
+**Column Selection & Renaming:**
+- Selects 17 columns from the raw data and renames them to shorter, cleaner names
+- Encodes `store_and_fwd_flag`: `N → 0`, `Y → 1`
+- Casts `fare` and `payment_type` to `int64`
 
-- Loading and inspecting the dataset  
-- Handling missing values and invalid records  
-- Filtering inconsistent or unrealistic observations  
+**Scaling:**
+- Applies `StandardScaler` to 10 numerical columns: `passengers`, `distance`, `fare`, `extras`, `tax`, `tip`, `tolls`, `improvement`, `congestion`, `duration`
+- Saves the fitted scaler to `artifacts/scaler.pkl`
 
-Ensuring data quality at this stage is essential for building reliable machine learning models.
+**Final Output:**
+- `X_train`, `X_test` (16 features each: 6 categorical + 10 scaled numerical)
+- `y_train`, `y_test` (target: `total` — total fare amount)
 
-### Feature Transformation
+### 3. Model Training (`src/components/model_trainer.py`)
 
-- Selecting relevant variables for modeling  
-- Encoding categorical variables into numerical form  
-- Applying feature scaling to normalize numerical values  
-
-These steps ensure that the data is suitable for machine learning algorithms.
-
----
-
-## Feature Engineering
-
-Feature engineering is used to extract meaningful patterns from raw trip data. Several transformations and derived features help improve the predictive capability of the models.
-
-Key feature engineering steps include:
-
-- Temporal feature extraction  
-  - Deriving time-based attributes from timestamps  
-  - Capturing patterns related to travel time and demand
-
-- Trip duration calculation  
-  - Calculating duration from pickup and drop-off timestamps  
-  - Providing additional context about trip characteristics
-
-- Categorical encoding  
-  - Converting categorical variables such as payment type and rate codes into numerical format
-
-- Feature scaling  
-  - Standardizing numerical features so that models can learn patterns effectively
-
-- Outlier detection  
-  - Identifying extreme values using statistical methods such as Z-score analysis
-
-These transformations help convert raw trip data into a structured dataset suitable for model training.
+- **Algorithm:** `DecisionTreeRegressor` (scikit-learn) with `random_state=42`
+- **Wrapping:** The model is wrapped in a sklearn `Pipeline` alongside a preprocessor
+- **Evaluation Metrics:** R² Score, Mean Absolute Error (MAE), Mean Squared Error (MSE)
+- **Output:** Trained pipeline saved to `artifacts/model.pkl`
+- Metrics are printed to console and logged to `logs/project.log`
 
 ---
 
-## Statistical Methods Used
+## Training Orchestration
 
-Statistical analysis plays an important role in understanding the dataset before model training.
+**Entry point:** `main.py`  
+**Orchestrator:** `src/pipelines/training_pipeline.py` → `TrainingPipeline.start_pipeline()`
 
-Some of the methods applied include:
+The pipeline runs the three stages sequentially:
+```
+DataIngestion → DataTransformation → ModelTrainer
+```
 
-- Descriptive statistics
-  - Mean
-  - Variance
-  - Standard deviation  
-  Used to understand the distribution of numerical variables.
-
-- Z-score analysis
-  - Helps detect extreme values or outliers in the dataset.
-
-- Analysis of variance (ANOVA)
-  - Used to examine relationships between categorical features and the target variable.
-
-These techniques help identify important features and improve the reliability of the modeling process.
+Configuration is loaded from `config/config.yaml` via `ConfigurationManager`, which maps YAML keys to typed dataclasses (`DataIngestionConfig`, `ModelTrainerConfig`).
 
 ---
 
-## Machine Learning Models
+## Prediction API
 
-Several regression algorithms were trained and evaluated to determine which model best predicts taxi fares.
+**Framework:** FastAPI (`app.py`)  
+**Server:** Uvicorn
 
-Models explored in the project include:
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Health check — returns `"Taxi Fare Prediction API"` |
+| `/predict` | POST | Accepts `{"data": [float, ...]}` (16 values), runs the model, returns `{"fare_prediction": float}` |
+| `/predict_random` | GET | Samples a random row from `artifacts/test.csv`, re-transforms it, scales numerical features using the saved scaler, predicts the fare, and returns actual vs. predicted fare with trip distance and duration |
 
-- Decision Tree Regressor  
-- Random Forest Regressor  
-- Gradient Boosting Regressor  
-- XGBoost Regressor  
-
-Training multiple models allows comparison of different approaches and helps identify the algorithm that performs best for the dataset.
-
----
-
-## Model Evaluation
-
-Model performance is evaluated using standard regression metrics:
-
-- Mean Absolute Error (MAE) – Measures average prediction error  
-- Mean Squared Error (MSE) – Penalizes larger prediction errors  
-- Root Mean Squared Error (RMSE) – Square root of MSE for easier interpretation  
-- R² Score – Indicates how well the model explains variance in the target variable  
-
-These metrics help determine the most reliable model for deployment.
+The `/predict_random` endpoint is useful for quick model validation without needing to craft input manually.
 
 ---
 
-## Model Deployment
+## Key Artifacts
 
-After identifying the best-performing model, it is serialized and stored as a reusable artifact. This allows the model to be loaded later without retraining.
-
-The trained model is deployed using FastAPI, which exposes a REST API for prediction. Through this API:
-
-- Users can send taxi trip information as input
-- The system processes the input using the trained model
-- The API returns the predicted taxi fare
-
-This setup demonstrates how machine learning models can be integrated into real applications that require real-time predictions.
+| File | Description |
+|------|-------------|
+| `artifacts/train.csv` | Training split of raw data |
+| `artifacts/test.csv` | Test split of raw data |
+| `artifacts/model.pkl` | Trained sklearn Pipeline (preprocessor + DecisionTreeRegressor) |
+| `artifacts/scaler.pkl` | Fitted StandardScaler for numerical features |
+| `logs/project.log` | Runtime logs with timestamps |
 
 ---
 
-## Technologies Used
+## Configuration (`config/config.yaml`)
 
-- Python  
-- Pandas  
-- NumPy  
-- Scikit-learn  
-- XGBoost  
-- FastAPI  
-- Uvicorn  
+```yaml
+artifacts_root: artifacts
+
+data_ingestion:
+  dataset_path: data/taxi.csv
+  train_path: artifacts/train.csv
+  test_path: artifacts/test.csv
+  test_size: 0.12
+
+model_trainer:
+  model_path: artifacts/model.pkl
+  random_state: 42
+```
 
 ---
 
-## Key Highlights of the Project
+## Dependencies
 
-- End-to-end machine learning pipeline  
-- Modular and maintainable project structure  
-- Real-world transportation dataset  
-- Multiple regression models evaluated  
-- Deployment-ready prediction API  
-- Demonstration of how ML models move from data to production
+- **pandas** — Data loading and manipulation
+- **scikit-learn** — StandardScaler, DecisionTreeRegressor, Pipeline, train_test_split, metrics
+- **NumPy** — Array operations in the API layer
+- **FastAPI** — REST API framework
+- **Pydantic** — Request body validation (`TaxiInput` model)
+- **PyYAML** — Configuration file parsing
+- **pickle** — Model and scaler serialization (via `src/utils/common.py`)
+- **uvicorn** — ASGI server for FastAPI
+
+---
+
+## Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      main.py                                │
+│                  TrainingPipeline                            │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────────┐  ┌──────────────┐  │
+│  │   Data       │  │      Data        │  │    Model     │  │
+│  │  Ingestion   │→ │  Transformation  │→ │   Trainer    │  │
+│  │              │  │                  │  │              │  │
+│  │ • Load CSV   │  │ • Clean data     │  │ • Train DT   │  │
+│  │ • Split data │  │ • Engineer feats │  │ • Evaluate   │  │
+│  │ • Save CSVs  │  │ • Scale numbers  │  │ • Save model │  │
+│  └──────────────┘  └──────────────────┘  └──────────────┘  │
+│         ↓                   ↓                    ↓          │
+│    train.csv           scaler.pkl           model.pkl       │
+│    test.csv                                                 │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                       app.py                                │
+│                   FastAPI Server                            │
+│                                                             │
+│   GET  /              → Health check                        │
+│   POST /predict       → Predict from feature vector         │
+│   GET  /predict_random→ Random test row prediction          │
+└─────────────────────────────────────────────────────────────┘
+```
